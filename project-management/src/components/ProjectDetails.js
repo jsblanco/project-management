@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
 import axios from "axios";
 import EditProject from "./EditProject";
+import AddTask from "./tasks/AddTasks";
 
 class ProjectDetails extends Component {
   constructor(props) {
@@ -49,16 +50,32 @@ class ProjectDetails extends Component {
 
   deleteProject = () => {
     const { params } = this.props.match;
-    axios.delete(`http://localhost:4000/api/projects/${params.id}`)
-    .then( () =>{
-        this.props.history.push('/projects'); {/* !!! */}
+    axios
+      .delete(`http://localhost:4000/api/projects/${params.id}`)
+      .then(() => {
+        this.props.history.push("/projects");
+        {
+          /* !!! */
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
 
-    })
-    .catch((err)=>{
-        console.log(err)
-    })
-  }
-
+  renderAddTaskForm = () => {
+    if (!this.state.title) {
+      this.getSingleProject();
+    } else {
+      // pass the project and method getSingleProject() as a props down to AddTask component
+      return (
+        <AddTask
+          theProject={this.state}
+          getTheProject={this.getSingleProject}
+        />
+      );
+    }
+  };
 
   render() {
     let editForm;
@@ -69,11 +86,25 @@ class ProjectDetails extends Component {
       <div>
         <h1>{this.state.title}</h1>
         <p>{this.state.description}</p>
+        {this.state.tasks && this.state.tasks.length > 0 && <h3>Tasks</h3>}
+        {/* map through the array of tasks and... */}
+        {this.state.tasks &&
+          this.state.tasks.map((task, index) => {
+            return (
+              <div key={index}>
+                {/* ... make each task's title a link that goes to the task details page */}
+                <Link to={`/projects/${this.state._id}/tasks/${task._id}`}>
+                  {task.title}
+                </Link>
+              </div>
+            );
+          })}
         <div>
-          <button onClick={()=>this.renderEditButton()}>Edit project</button>
+        <div>{this.renderAddTaskForm()}</div>
+          <button onClick={() => this.renderEditButton()}>Edit project</button>
           <button onClick={() => this.deleteProject()}>Delete project</button>
+          {editForm}
         </div>
-        {editForm}
         <Link to={"/projects"}>Back to projects</Link>
       </div>
     );
